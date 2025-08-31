@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<resources>
+    <!-- File auto-generated for language 'ja' by generateTranslationsWithLibreTranslate. Do not edit manually! -->
+    <string name="welcome_greeting">お問い合わせ!</string>
+    <string name="action_button_text">ここをクリック</string>
+    <string name="my_name">私の名前は%1$で、私は%2$dの歳です.</string>
+    <string name="status_update">処理されるファイル%1$s。 進捗率:%2$d%%.</string>
+    <!-- Note: %% for literal % -->
+    <string name="escaped_characters">この文字列には、&lt;XML タグ&gt;とアンパサンドが含まれている.</string>
+    <string name="quote_example">彼女は言った。「それは素晴らしい一日です!\」</string>
+    <string name="multiline_string">これは1行です。\n 2行目です.</string>
+    <string name="tabbed_string">アイテム:\tValue</string>
+    <string name="unicode_example">著作権記号:\u00A9</string>
+    <string name="feature_description_translatable">この機能は、タスクを整理するのに役立ちます.</string>
+    <string name="literal_percentage">値として50%を入力してください.</string>
+    <string name="default_formatted_string">スコアは %1$d ポイントです.</string>
+    <!-- formatted="true" by default -->
+    <string name="fitness_gram_pacer_test_line1">FitnessGramTMパサー 試験は多段有酸素能力試験です</string>
+    <string name="fitness_gram_pacer_test_line2">継続してより難しくなります。 20メートルのスペーサ</string>
+    <string name="fitness_gram_pacer_test_line3">30秒でテストが開始されます。 スタート時にラインアップ。 走行速度</string>
+    <string name="fitness_gram_pacer_test_line4">この信号を聞きながら、ゆっくりスタートします.</string>
+    <string name="fitness_gram_pacer_test_line5">[beep] 音を聴くたびに一周一周完走する.</string>
+    <string name="fitness_gram_pacer_test_line6">[ding] 直線で実行し、可能な限り実行することを忘れないでください.</string>
+    <string name="fitness_gram_pacer_test_line7">音の前にラップを完成させるのに失敗する2番目の時間は、あなたのテストは</string>
+    <string name="fitness_gram_pacer_test_line8">お問い合わせ テストは単語の開始から始まります。 あなたのマークで、準備ができて、スタート!</string>
+    <string-array name="planets_array">
+        <item>マーキュリー</item>
+        <item>ヴィーナス</item>
+        <item>アース</item>
+        <item>マース</item>
+        <item>ジュピター</item>
+        <item>サターン</item>
+        <item>ウランサス</item>
+        <item>ネプチューン</item>
+    </string-array>
+    <plurals name="numbers">
+        <item quantity="one">1つの項目</item>
+        <item quantity="two">2つの項目</item>
+        <item quantity="other">%d アイテム</item>
+    </plurals>
+    <plurals name="files_deleted_count">
+        <item quantity="zero">ファイルが削除されませんでした.</item>
+        <item quantity="one">%d ファイルが削除されました.</item>
+        <item quantity="other">%d ファイルが削除されました.</item>
+    </plurals>
+    <plurals name="minutes_remaining">
+        <item quantity="one">残り1分</item>
+        <item quantity="other">%d 残り分</item>
+    </plurals>
+</resources>

@@ -1,5 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Translate Genie</string>
+
+    <string name="app_name" translatable="false">My Example App</string>
+    <string name="welcome_greeting">Hello there!</string>
+    <string name="action_button_text">Click Me</string>
+
+    <string name="my_name">My name is %1$s and I am %2$d years old.</string>
+    <string name="status_update">File %1$s processed. Progress: %2$d%%.</string> <!-- Note: %% for literal % -->
+
+    <string name="escaped_characters">This string contains &lt;XML Tags&gt; &amp; an ampersand.</string>
+    <string name="quote_example">She said, \"It\'s a wonderful day!\"</string>
+    <string name="multiline_string">This is line one.\nThis is line two.</string>
+    <string name="tabbed_string">Item:\tValue</string>
+    <string name="unicode_example">Copyright symbol: \u00A9</string>
+
+    <string name="product_serial_number" translatable="false">SN_12345_ABC</string>
+    <string name="feature_description_translatable">This feature helps you organize your tasks.</string>
+
+    <string name="literal_percentage" formatted="false">Please enter 50% as the value.</string>
+    <string name="default_formatted_string">Your score is %1$d points.</string> <!-- formatted="true" by default -->
+
     <string name="fitness_gram_pacer_test_line1">The FitnessGram™ Pacer Test is a multistage aerobic capacity test</string>
     <string name="fitness_gram_pacer_test_line2">that progressively gets more difficult as it continues. The 20 meter pacer</string>
     <string name="fitness_gram_pacer_test_line3">test will begin in 30 seconds. Line up at the start. The running speed</string>
@@ -8,4 +28,43 @@
     <string name="fitness_gram_pacer_test_line6">[ding] Remember to run in a straight line, and run as long as possible.</string>
     <string name="fitness_gram_pacer_test_line7">The second time you fail to complete a lap before the sound, your test is</string>
     <string name="fitness_gram_pacer_test_line8">over. The test will begin on the word start. On your mark, get ready, start!</string>
+
+    <string-array name="planets_array">
+        <item>Mercury</item>
+        <item>Venus</item>
+        <item>Earth</item>
+        <item>Mars</item>
+        <item>Jupiter</item>
+        <item>Saturn</item>
+        <item>Uranus</item>
+        <item>Neptune</item>
+    </string-array>
+
+    <string-array name="days_of_week_short" translatable="false">
+        <item>Mon</item>
+        <item>Tue</item>
+        <item>Wed</item>
+        <item>Thu</item>
+        <item>Fri</item>
+        <item>Sat</item>
+        <item>Sun</item>
+    </string-array>
+
+    <plurals name="numbers">
+        <item quantity="one">one item</item>
+        <item quantity="two">two items</item>
+        <item quantity="other">%d items</item>
+    </plurals>
+
+    <plurals name="files_deleted_count">
+        <item quantity="zero">No files were deleted.</item>
+        <item quantity="one">%d file was deleted.</item>
+        <item quantity="other">%d files were deleted.</item>
+    </plurals>
+
+    <plurals name="minutes_remaining">
+        <item quantity="one">1 minute remaining</item>
+        <item quantity="other">%d minutes remaining</item>
+    </plurals>
+
 </resources>

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<resources>
+    <!-- File auto-generated for language 'de' by generateTranslationsWithLibreTranslate. Do not edit manually! -->
+    <string name="welcome_greeting">Hallo!</string>
+    <string name="action_button_text">Klicken Sie auf mich</string>
+    <string name="my_name">Mein Name ist %1$ und ich bin %2$d Jahre alt.</string>
+    <string name="status_update">Datei %1$s verarbeitet. Fortschritt: %2$d%.</string>
+    <!-- Note: %% for literal % -->
+    <string name="escaped_characters">Dieser String enthält &lt;XML Tags&gt; &amp; an ampersand.</string>
+    <string name="quote_example">Sie sagte, \"Es ist ein wunderbarer Tag!\"</string>
+    <string name="multiline_string">Das ist eine Zeile. Das ist Linie zwei.</string>
+    <string name="tabbed_string">Gegenstand: tValue</string>
+    <string name="unicode_example">Copyright-Symbol: \u00A9</string>
+    <string name="feature_description_translatable">Diese Funktion hilft Ihnen, Ihre Aufgaben zu organisieren.</string>
+    <string name="literal_percentage">Bitte geben Sie 50% als Wert ein.</string>
+    <string name="default_formatted_string">Ihre Bewertung ist %1$d Punkte.</string>
+    <!-- formatted="true" by default -->
+    <string name="fitness_gram_pacer_test_line1">Der FitnessGramTM Pacer Test ist ein mehrstufiger aerobe Kapazitätstest</string>
+    <string name="fitness_gram_pacer_test_line2">das immer schwieriger wird, wie es weitergeht. 20 Meter Temporär</string>
+    <string name="fitness_gram_pacer_test_line3">der Test beginnt in 30 Sekunden. Start. Die Laufgeschwindigkeit</string>
+    <string name="fitness_gram_pacer_test_line4">beginnt langsam, aber wird jede minute schneller, nachdem sie dieses signal hören.</string>
+    <string name="fitness_gram_pacer_test_line5">[Schläft] Jedes Mal, wenn ihr diesen Ton hört, sollte ein einziger Schoß fertig sein.</string>
+    <string name="fitness_gram_pacer_test_line6">Denken Sie daran, in einer geraden Linie zu laufen, und so lange wie möglich laufen.</string>
+    <string name="fitness_gram_pacer_test_line7">Das zweite Mal, wenn Sie eine Runde vor dem Sound nicht abgeschlossen, Ihr Test ist</string>
+    <string name="fitness_gram_pacer_test_line8">over. Der Test beginnt am Wortstart. Mach dich bereit, fange an!</string>
+    <string-array name="planets_array">
+        <item>Quecksilber</item>
+        <item>Venusmuschel</item>
+        <item>Erde</item>
+        <item>Mars</item>
+        <item>Jupiter</item>
+        <item>Saturn</item>
+        <item>Uran</item>
+        <item>Neptun</item>
+    </string-array>
+    <plurals name="numbers">
+        <item quantity="one">ein produkt</item>
+        <item quantity="two">zwei artikel</item>
+        <item quantity="other">% der positionen</item>
+    </plurals>
+    <plurals name="files_deleted_count">
+        <item quantity="zero">Es wurden keine Dateien gelöscht.</item>
+        <item quantity="one">%d-datei wurde gestrichen.</item>
+        <item quantity="other">%d dateien wurden gelöscht.</item>
+    </plurals>
+    <plurals name="minutes_remaining">
+        <item quantity="one">1 minute verbleibende</item>
+        <item quantity="other">verbleibende minuten</item>
+    </plurals>
+</resources>
