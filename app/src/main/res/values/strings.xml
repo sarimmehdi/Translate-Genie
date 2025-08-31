@@ -1,3 +1,11 @@
 <resources>
     <string name="app_name">Translate Genie</string>
+    <string name="fitness_gram_pacer_test_line1">The FitnessGram™ Pacer Test is a multistage aerobic capacity test</string>
+    <string name="fitness_gram_pacer_test_line2">that progressively gets more difficult as it continues. The 20 meter pacer</string>
+    <string name="fitness_gram_pacer_test_line3">test will begin in 30 seconds. Line up at the start. The running speed</string>
+    <string name="fitness_gram_pacer_test_line4">starts slowly, but gets faster each minute after you hear this signal.</string>
+    <string name="fitness_gram_pacer_test_line5">[beep] A single lap should be completed each time you hear this sound.</string>
+    <string name="fitness_gram_pacer_test_line6">[ding] Remember to run in a straight line, and run as long as possible.</string>
+    <string name="fitness_gram_pacer_test_line7">The second time you fail to complete a lap before the sound, your test is</string>
+    <string name="fitness_gram_pacer_test_line8">over. The test will begin on the word start. On your mark, get ready, start!</string>
 </resources>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<resources>
+    <!--File auto-generated for language 'es' by generateTranslationsWithLibreTranslate. Do not edit manually!-->
+    <string name="fitness_gram_pacer_test_line1">FitnessGramTM Pacer Prueba es una prueba de capacidad aeróbica de varias etapas</string>
+    <string name="fitness_gram_pacer_test_line2">que progresivamente se hace más difícil a medida que continúa. El medidor de 20 metros</string>
+    <string name="fitness_gram_pacer_test_line3">la prueba comenzará en 30 segundos. En fila al principio. La velocidad de funcionamiento</string>
+    <string name="fitness_gram_pacer_test_line4">comienza lentamente, pero se vuelve más rápido cada minuto después de escuchar esta señal.</string>
+    <string name="fitness_gram_pacer_test_line5">Una sola vuelta debe completarse cada vez que escuche este sonido.</string>
+    <string name="fitness_gram_pacer_test_line6">Recuerda correr en línea recta, y correr lo más posible.</string>
+    <string name="fitness_gram_pacer_test_line7">La segunda vez que no terminas una vuelta antes del sonido, tu prueba es</string>
+    <string name="fitness_gram_pacer_test_line8">cambio. La prueba comenzará con la palabra inicial. ¡Con tu marca, prepárate, empieza!</string>
+</resources>

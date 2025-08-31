@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<resources>
+    <!--File auto-generated for language 'de' by generateTranslationsWithLibreTranslate. Do not edit manually!-->
+    <string name="fitness_gram_pacer_test_line1">Der FitnessGramTM Pacer Test ist ein mehrstufiger aerobe Kapazitätstest</string>
+    <string name="fitness_gram_pacer_test_line2">das immer schwieriger wird, wie es weitergeht. 20 Meter Temporär</string>
+    <string name="fitness_gram_pacer_test_line3">der Test beginnt in 30 Sekunden. Start. Die Laufgeschwindigkeit</string>
+    <string name="fitness_gram_pacer_test_line4">beginnt langsam, aber wird jede minute schneller, nachdem sie dieses signal hören.</string>
+    <string name="fitness_gram_pacer_test_line5">[Schläft] Jedes Mal, wenn ihr diesen Ton hört, sollte ein einziger Schoß fertig sein.</string>
+    <string name="fitness_gram_pacer_test_line6">Denken Sie daran, in einer geraden Linie zu laufen, und so lange wie möglich laufen.</string>
+    <string name="fitness_gram_pacer_test_line7">Das zweite Mal, wenn Sie eine Runde vor dem Sound nicht abgeschlossen, Ihr Test ist</string>
+    <string name="fitness_gram_pacer_test_line8">over. Der Test beginnt am Wortstart. Mach dich bereit, fange an!</string>
+</resources>
