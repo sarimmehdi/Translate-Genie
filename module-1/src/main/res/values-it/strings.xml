@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<resources>
+    <!-- File auto-generated for language 'it'-->
+    <string name="welcome_greeting">Ciao!</string>
+    <string name="action_button_text">Clicca su</string>
+    <string name="my_name">Il mio nome è %1$s e ho %2$d anni.</string>
+    <string name="status_update">File %1$s elaborato. Progressi: %2$d%%.</string>
+    <!-- Note: %% for literal % -->
+    <string name="escaped_characters">Questa stringa contiene &lt;XML Tags&gt; &amp; ampersand.</string>
+    <string name="quote_example">Ha detto, \"È una giornata meravigliosa!\"</string>
+    <string name="multiline_string">Questa è la linea uno. Questa è la linea due.</string>
+    <string name="tabbed_string">Articolo:\tValue</string>
+    <string name="unicode_example">Copyright simbolo: \u00A9</string>
+    <string name="feature_description_translatable">Questa funzione ti aiuta a organizzare i tuoi compiti.</string>
+    <string name="literal_percentage">Si prega di inserire il 50% come valore.</string>
+    <string name="default_formatted_string">Il tuo punteggio è %1$d punti.</string>
+    <!-- formatted="true" by default -->
+    <string name="fitness_gram_pacer_test_line1">Il FitnessGramTM Pacer Il test è un test multistadio di capacità aerobica</string>
+    <string name="fitness_gram_pacer_test_line2">che progressivamente diventa più difficile come continua. Il pacer di 20 metri</string>
+    <string name="fitness_gram_pacer_test_line3">il test inizierà in 30 secondi. All\'inizio. La velocità di esecuzione</string>
+    <string name="fitness_gram_pacer_test_line4">inizia lentamente, ma diventa più veloce ogni minuto dopo aver sentito questo segnale.</string>
+    <string name="fitness_gram_pacer_test_line5">Un singolo giro dovrebbe essere completato ogni volta che senti questo suono.</string>
+    <string name="fitness_gram_pacer_test_line6">Ricordati di correre in linea retta e correre il più a lungo possibile.</string>
+    <string name="fitness_gram_pacer_test_line7">La seconda volta che non si riesce a completare un giro prima del suono, il test è</string>
+    <string name="fitness_gram_pacer_test_line8">passo. Il test inizierà con la parola inizio. Al tuo posto, preparati, inizia!</string>
+    <string-array name="days_of_week_short">
+        <item>Lunedì</item>
+        <item>Martedì</item>
+        <item>Mercoledì</item>
+        <item>Giovedì</item>
+        <item>Venerdì</item>
+        <item>Sabato</item>
+        <item>Domenica</item>
+    </string-array>
+    <plurals name="all_quantities">
+        <item quantity="zero">Ci sono esattamente zero degli elementi (%d)</item>
+        <item quantity="one">C\'è proprio un elemento (%d)</item>
+        <item quantity="two">Ci sono specificamente due elementi (%d)</item>
+        <item quantity="few">Ci sono alcuni elementi, come %d (ad esempio, per piccoli conteggi come 2-4 in alcune lingue)</item>
+        <item quantity="many">Ci sono molti elementi, come %d (ad esempio, per conteggi più grandi o intervalli specifici come 0, 5-10 in alcune lingue)</item>
+        <item quantity="other">Ci sono un altro numero di elementi (%d) (Questo è il rientro obbligatorio)</item>
+    </plurals>
+</resources>

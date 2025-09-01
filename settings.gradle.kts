@@ -21,4 +21,9 @@ dependencyResolutionManagement {
 
 rootProject.name = "Translate Genie"
 include(":app")
- 
+include(":module-1")
+include(":module-2")
+include(":translate-genie")
+include(":nested-module")
+include(":nested-module:module-1")
+include(":nested-module:module-2")
