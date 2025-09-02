@@ -1,10 +1,23 @@
 [versions]
 agp = "8.12.2"
 kotlin = "2.2.10"
-vanniktechVersion = "0.34.0"
+jsonSimpleVersion = "1.1.1"
+gradlePublishPluginVersion = "1.3.1"
+ktlintVersion = "13.1.0"
+detektVersion = "1.23.8"
+spotlessVersion = "7.2.1"
+translateGeniePluginName = "translateGenie"
+translateGeniePluginClass = "com.sarim.translate_genie.TranslateGeniePlugin"
+
+[libraries]
+jsonSimpleLibrary = { group = "com.googlecode.json-simple", name = "json-simple", version.ref = "jsonSimpleVersion" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 android-library = { id = "com.android.library", version.ref = "agp" }
-vanniktechMavenPublishingPlugin = { id = "com.vanniktech.maven.publish", version.ref = "vanniktechVersion" }
+gradlePublishPluginLibrary = { id = "com.gradle.plugin-publish", version.ref = "gradlePublishPluginVersion" }
+detektPlugin = { id = "io.gitlab.arturbosch.detekt", version.ref = "detektVersion" }
+ktlintPlugin = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlintVersion" }
+spotlessPlugin = { id = "com.diffplug.spotless", version.ref = "spotlessVersion" }
+translateGeniePluginId = { id = "translate-genie" }

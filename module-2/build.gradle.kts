@@ -35,7 +35,3 @@ android {
         }
     }
 }
-
-dependencies {
-    implementation(project(":translate-genie"))
-}
