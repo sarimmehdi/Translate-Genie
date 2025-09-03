@@ -20,4 +20,4 @@ gradlePublishPluginLibrary = { id = "com.gradle.plugin-publish", version.ref = "
 detektPlugin = { id = "io.gitlab.arturbosch.detekt", version.ref = "detektVersion" }
 ktlintPlugin = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlintVersion" }
 spotlessPlugin = { id = "com.diffplug.spotless", version.ref = "spotlessVersion" }
-translateGeniePluginId = { id = "com.sarim.translate-genie" }
+translateGeniePluginId = { id = "io.github.sarimmehdi.translate-genie" }
