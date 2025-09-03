@@ -123,6 +123,7 @@ jobs:
   publish:
     name: publish plugin
     runs-on: macOS-latest
+    needs: build_app
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4.2.2
