@@ -46,7 +46,7 @@ jobs:
 
       - name: Check for KTLint violations
         run: |
-          ./gradlew ktlintCheck
+          ./gradlew :translate-genie:ktlintCheck
           if [ $? -ne 0 ]; then
             echo "KTLint found violations that could not be automatically fixed."
             exit 1
@@ -105,7 +105,7 @@ jobs:
           fi
 
       - name: Run Spotless Check
-        run: ./gradlew spotlessCheck
+        run: ./gradlew :translate-genie:spotlessCheck
   build_app:
     name: Build Application
     runs-on: ubuntu-latest
