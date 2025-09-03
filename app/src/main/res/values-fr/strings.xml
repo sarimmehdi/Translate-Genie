@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<resources>
+    <!-- Auto-generated for 'fr' by TranslateGenie on 2025-09-03 21:41:33 MESZ -->
+    <string name="app_name" translatable="false">My Example App</string>
+    <!-- Note: %% for literal % -->
+    <string name="product_serial_number" translatable="false">SN_12345_ABC</string>
+    <!-- formatted="true" by default -->
+    <string name="welcome_greeting">Bonjour !</string>
+    <string name="action_button_text">Cliquez sur Moi</string>
+    <string name="my_name">Mon nom est %1$s et je suis %2$d ans.</string>
+    <string name="status_update">Fichier %1$s traité. Progrès &amp;amp; #160;: %2$d%%%.</string>
+    <string name="escaped_characters">Cette chaîne contient &amp;lt;XML Tags&amp;gt; &amp;amp; un ampersand.</string>
+    <string name="quote_example">Elle a dit : \"C\'est une journée merveilleuse !\"</string>
+    <string name="multiline_string">Voici la ligne 1. C\'est la ligne 2.</string>
+    <string name="tabbed_string">Poste:\tValeur</string>
+    <string name="unicode_example">Symbole de copyright: \u00A9</string>
+    <string name="feature_description_translatable">Cette fonctionnalité vous aide à organiser vos tâches.</string>
+    <string name="literal_percentage">Veuillez entrer 50%% comme valeur.</string>
+    <string name="default_formatted_string">Votre score est %1$d points.</string>
+    <string name="fitness_gram_pacer_test_line1">Le FitnessGramTM Pacer Test est un test de capacité aérobie à plusieurs étages</string>
+    <string name="fitness_gram_pacer_test_line2">qui devient progressivement plus difficile comme il continue. Le pacer de 20 mètres</string>
+    <string name="fitness_gram_pacer_test_line3">test commencera dans 30 secondes. Alignez-vous au début. La vitesse de fonctionnement</string>
+    <string name="fitness_gram_pacer_test_line4">commence lentement, mais devient plus rapide chaque minute après avoir entendu ce signal.</string>
+    <string name="fitness_gram_pacer_test_line5">Un seul tour devrait être terminé chaque fois que vous entendez ce son.</string>
+    <string name="fitness_gram_pacer_test_line6">N\'oubliez pas de courir en ligne droite et de courir le plus longtemps possible.</string>
+    <string name="fitness_gram_pacer_test_line7">La deuxième fois que vous n\'avez pas terminé un tour avant le son, votre test est</string>
+    <string name="fitness_gram_pacer_test_line8">c\'est fini. Le test commencera au début du mot. À votre signal, préparez-vous, commencez !</string>
+    <string-array name="days_of_week_short">
+        <item>Lundi</item>
+        <item>Mardi</item>
+        <item>Mercredi</item>
+        <item>Jeudi</item>
+        <item>Vendredi</item>
+        <item>Samedi</item>
+        <item>Dimanche</item>
+    </string-array>
+    <plurals name="all_quantities">
+        <item quantity="zero">Il y a exactement zéro des éléments (%d)</item>
+        <item quantity="one">Il y a exactement un élément (%d)</item>
+        <item quantity="two">Il y a spécifiquement deux éléments (%d)</item>
+        <item quantity="few">Il y a quelques éléments, comme %d (p. ex. pour de petits nombres comme 2-4 dans certaines langues)</item>
+        <item quantity="many">Il y a beaucoup d\'éléments, tels que %d (p. ex. pour des nombres plus grands ou des plages spécifiques comme 0, 5-10 dans certaines langues)</item>
+        <item quantity="other">Il y a un autre nombre d\'éléments (%d) (Il s\'agit du repli obligatoire)</item>
+    </plurals>
+</resources>

@@ -29,6 +29,7 @@ import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 import java.text.SimpleDateFormat
 import java.util.Date
+import java.util.Locale
 import javax.xml.XMLConstants
 import javax.xml.parsers.DocumentBuilderFactory
 import javax.xml.transform.OutputKeys
@@ -43,10 +44,9 @@ import kotlin.collections.set
 import kotlin.text.isBlank
 import kotlin.text.isNotBlank
 import kotlin.text.split
-import java.util.Locale
 
+@Suppress("LargeClass")
 abstract class GenerateTranslationsTask : DefaultTask() {
-
     @get:Input
     abstract val baseApiUrl: Property<String>
 
@@ -86,6 +86,9 @@ abstract class GenerateTranslationsTask : DefaultTask() {
     @get:Input
     abstract val readTimeoutMs: Property<Int>
 
+    @get:Input
+    abstract val batchSize: Property<Int>
+
     @get:OutputDirectory
     abstract val outputBaseResDirectory: DirectoryProperty
 
@@ -98,70 +101,87 @@ abstract class GenerateTranslationsTask : DefaultTask() {
         outputs.upToDateWhen { false }
     }
 
+    @Suppress("NestedBlockDepth", "CyclomaticComplexMethod", "LongMethod")
     @TaskAction
     fun execute() {
         val logger = taskSpecificLogger.getOrElse(project.logger)
         logger.lifecycle("Starting 'GenerateTranslationsTask' with BATCH processing...")
 
+        if (batchSize.get() <= 0) throw GradleException("batchSize must be a positive integer.")
         if (baseApiUrl.get().isBlank()) throw GradleException("baseApiUrl must be set.")
         if (keyForTextsToTranslate.get().isBlank()) throw GradleException("keyForTextsToTranslate must be set.")
         if (keyForTargetLanguage.get().isBlank()) throw GradleException("keyForTargetLanguage must be set.")
         if (targetLanguagesList.get().isEmpty()) {
-            logger.lifecycle("No target languages specified in targetLanguagesList. Skipping.")
-            return
+            throw GradleException("No target languages specified in targetLanguagesList. Skipping.")
         }
         val defaultAppLang = defaultAppLanguage.get()
-        if (defaultAppLang.isBlank()){
+        if (defaultAppLang.isBlank()) {
             logger.warn("defaultAppLanguage is blank, defaulting to 'en' for folder naming.")
             defaultAppLanguage.set("en")
         }
 
-
-        val baseJson: JSONObject = try {
-            val additionalBody = additionalJsonBody.getOrElse("{}")
-            if (additionalBody.isNotBlank() && additionalBody != "{}") {
-                JSONParser().parse(additionalBody) as JSONObject
-            } else {
-                JSONObject()
+        val baseJson: JSONObject =
+            try {
+                val additionalBody = additionalJsonBody.getOrElse("{}")
+                if (additionalBody.isNotBlank() && additionalBody != "{}") {
+                    JSONParser().parse(additionalBody) as JSONObject
+                } else {
+                    JSONObject()
+                }
+            } catch (e: ParseException) {
+                throw GradleException("Error parsing additionalJsonBody: ${e.message}", e)
             }
-        } catch (e: ParseException) {
-            throw GradleException("Error parsing additionalJsonBody: ${e.message}", e)
-        }
 
         var detectedOrFixedSourceLanguage = fixedSourceLanguageValue.getOrElse("").ifBlank { null }
         if (detectedOrFixedSourceLanguage == null) {
             detectedOrFixedSourceLanguage = defaultAppLanguage.get()
-            logger.lifecycle("No fixedSourceLanguageValue set. Using defaultAppLanguage ('$detectedOrFixedSourceLanguage') as the source language for API calls.")
+            logger.lifecycle(
+                "No fixedSourceLanguageValue set. Using defaultAppLanguage " +
+                    "('$detectedOrFixedSourceLanguage') as the source language for API calls.",
+            )
         } else {
-            logger.lifecycle("Using fixedSourceLanguageValue ('$detectedOrFixedSourceLanguage') as the source language for API calls.")
+            logger.lifecycle(
+                "Using fixedSourceLanguageValue ('$detectedOrFixedSourceLanguage') " +
+                    "as the source language for API calls.",
+            )
         }
-
 
         val consumingProject = project
         logger.lifecycle(">>> Processing project: ${consumingProject.name}")
 
         val consumerSourceStringsFile = File(consumingProject.projectDir, "src/main/res/values/strings.xml")
         if (!consumerSourceStringsFile.exists()) {
-            logger.warn("  [${consumingProject.name}] Default strings.xml not found at: ${consumerSourceStringsFile.absolutePath}. Skipping.")
+            logger.warn(
+                "  [${consumingProject.name}] Default strings.xml not found at: " +
+                    "${consumerSourceStringsFile.absolutePath}. Skipping.",
+            )
             return
         }
 
-        val sourceDoc: Document = try {
-            val docBuilderFactory = DocumentBuilderFactory.newInstance()
-            docBuilderFactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true)
-            docBuilderFactory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true)
-            docBuilderFactory.isExpandEntityReferences = false
-            val docBuilder = docBuilderFactory.newDocumentBuilder()
-            docBuilder.parse(FileInputStream(consumerSourceStringsFile)).also { it.documentElement.normalize() }
-        } catch (e: Exception) {
-            throw GradleException("Failed to parse source strings file for ${consumingProject.name}: ${e.message}", e)
-        }
+        val sourceDoc: Document =
+            try {
+                val docBuilderFactory = DocumentBuilderFactory.newInstance()
+                docBuilderFactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true)
+                docBuilderFactory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true)
+                docBuilderFactory.isExpandEntityReferences = false
+                val docBuilder = docBuilderFactory.newDocumentBuilder()
+                docBuilder.parse(FileInputStream(consumerSourceStringsFile)).also { it.documentElement.normalize() }
+            } catch (e: Exception) {
+                throw GradleException(
+                    "Failed to parse source strings file for " +
+                        "${consumingProject.name}: ${e.message}",
+                    e,
+                )
+            }
 
         val sourceRoot = sourceDoc.documentElement
         val sourceChildNodes = sourceRoot.childNodes
         if (sourceChildNodes.length == 0) {
-            logger.lifecycle("  [${consumingProject.name}] The source strings.xml file (${consumerSourceStringsFile.absolutePath}) " +
-                    "has no child nodes under the <resources> tag. Nothing to translate. Skipping.")
+            logger.lifecycle(
+                "  [${consumingProject.name}] The source strings.xml file " +
+                    "(${consumerSourceStringsFile.absolutePath}) has no child nodes under the " +
+                    "<resources> tag. Nothing to translate. Skipping.",
+            )
             return
         }
 
@@ -171,9 +191,17 @@ abstract class GenerateTranslationsTask : DefaultTask() {
         val apiKeyForTextBatch = keyForTextsToTranslate.get()
 
         targetLanguagesList.get().forEach { targetLangCode ->
-            val shouldTranslateViaApi = resolvedFixedSourceLang.isBlank() || !targetLangCode.equals(resolvedFixedSourceLang, ignoreCase = true)
+            val shouldTranslateViaApi =
+                resolvedFixedSourceLang.isBlank() || !targetLangCode.equals(resolvedFixedSourceLang, ignoreCase = true)
 
-            val valuesDirSuffix = if (targetLangCode.isNotEmpty() && !targetLangCode.equals(defaultAppLang, ignoreCase = true)) "-$targetLangCode" else ""
+            val valuesDirSuffix =
+                if (targetLangCode.isNotEmpty() &&
+                    !targetLangCode.equals(defaultAppLang, ignoreCase = true)
+                ) {
+                    "-$targetLangCode"
+                } else {
+                    ""
+                }
             val targetResDir = outputBaseResDirectory.get().dir("values$valuesDirSuffix")
             targetResDir.asFile.mkdirs()
             val targetXmlFile = targetResDir.file("strings.xml").asFile
@@ -182,10 +210,16 @@ abstract class GenerateTranslationsTask : DefaultTask() {
             val targetDoc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument()
             val targetRootElement = targetDoc.createElement("resources")
             targetDoc.appendChild(targetRootElement)
-            val currentTimestamp = SimpleDateFormat("yyyy-MM-dd HH:mm:ss z", Locale.getDefault()).format(
-                Date()
+            val currentTimestamp =
+                SimpleDateFormat("yyyy-MM-dd HH:mm:ss z", Locale.getDefault()).format(
+                    Date(),
+                )
+            targetRootElement.appendChild(
+                targetDoc.createComment(
+                    " Auto-generated for '$targetLangCode' " +
+                        "by TranslateGenie on $currentTimestamp ",
+                ),
             )
-            targetRootElement.appendChild(targetDoc.createComment(" Auto-generated for '$targetLangCode' by TranslateGenie on $currentTimestamp "))
 
             val itemsToTranslateForThisLang = mutableListOf<BatchItem>()
             val parentElementsInTargetDoc = mutableMapOf<String, Element>()
@@ -204,7 +238,10 @@ abstract class GenerateTranslationsTask : DefaultTask() {
                 val resourceType = sourceElement.tagName
 
                 if (resourceName.isNullOrEmpty()) {
-                    logger.warn("[$targetLangCode] Skipping <$resourceType> without a 'name'. File: ${consumerSourceStringsFile.absolutePath}")
+                    logger.warn(
+                        "[$targetLangCode] Skipping <$resourceType> without a 'name'. File: " +
+                            "${consumerSourceStringsFile.absolutePath}",
+                    )
                     return@forEachSomeChildNodes
                 }
 
@@ -215,7 +252,10 @@ abstract class GenerateTranslationsTask : DefaultTask() {
                     if (sourceElement.getAttribute("translatable") == "false") {
                         logger.debug("[$targetLangCode] Copied non-translatable '$resourceName' as is.")
                     } else {
-                        logger.debug("[$targetLangCode] Copied '$resourceName' as is (API translation skipped for this language).")
+                        logger.debug(
+                            "[$targetLangCode] Copied '$resourceName' as is (API translation " +
+                                "skipped for this language).",
+                        )
                     }
                     return@forEachSomeChildNodes
                 }
@@ -229,8 +269,8 @@ abstract class GenerateTranslationsTask : DefaultTask() {
                                     id = BatchItem.generateUniqueId(resourceName, resourceType, null, null),
                                     originalResourceType = resourceType,
                                     sourceText = sourceText,
-                                    originalSourceElement = sourceElement
-                                )
+                                    originalSourceElement = sourceElement,
+                                ),
                             )
                         } else {
                             val emptyTargetString = targetDoc.createElement(resourceType)
@@ -260,8 +300,8 @@ abstract class GenerateTranslationsTask : DefaultTask() {
                                         sourceText = sourceItemText,
                                         originalSourceElement = itemElement,
                                         parentResourceName = resourceName,
-                                        quantityKey = quantity
-                                    )
+                                        quantityKey = quantity,
+                                    ),
                                 )
                                 hasAnyTranslatableItem = true
                             } else {
@@ -277,7 +317,10 @@ abstract class GenerateTranslationsTask : DefaultTask() {
                         }
                     }
                     else -> {
-                        logger.warn("[$targetLangCode] Unsupported resource '$resourceName' (<$resourceType>). Copying as is if this is the default language.")
+                        logger.warn(
+                            "[$targetLangCode] Unsupported resource '$resourceName' (<$resourceType>). " +
+                                "Copying as is if this is the default language.",
+                        )
                         if (targetLangCode.equals(defaultAppLang, ignoreCase = true)) {
                             val copiedNode = targetDoc.importNode(sourceElement, true)
                             targetRootElement.appendChild(copiedNode)
@@ -290,10 +333,14 @@ abstract class GenerateTranslationsTask : DefaultTask() {
             val translatedDataMap = mutableMapOf<String, String>()
 
             if (itemsToTranslateForThisLang.isNotEmpty()) {
-                val batchSizeLimit = project.properties["translateGenie.batchSize"]?.toString()?.toIntOrNull() ?: 50
+                val batchSizeLimit = batchSize.get()
 
                 itemsToTranslateForThisLang.chunked(batchSizeLimit).forEachIndexed { batchIndex, currentBatchOfItems ->
-                    logger.info("[$targetLangCode] Preparing batch ${batchIndex + 1}/${itemsToTranslateForThisLang.chunked(batchSizeLimit).size} with ${currentBatchOfItems.size} items for API call.")
+                    logger.info(
+                        "[$targetLangCode] Preparing batch ${batchIndex + 1}/${itemsToTranslateForThisLang.chunked(
+                            batchSizeLimit,
+                        ).size} with ${currentBatchOfItems.size} items for API call.",
+                    )
 
                     val textsOnlyForApi = JSONArray()
                     currentBatchOfItems.forEach { textsOnlyForApi.add(it.sourceText) }
@@ -308,53 +355,74 @@ abstract class GenerateTranslationsTask : DefaultTask() {
                         val autoDetectionIsEnabled = true
                         if (autoDetectionIsEnabled && defaultAppLang.isNotBlank()) {
                             effectiveSourceLangCode = defaultAppLang
-                            logger.info("[$targetLangCode] No 'fixedSourceLanguageValue' provided. Using auto-detected source language: '$effectiveSourceLangCode' (from defaultAppLanguage).")
+                            logger.info(
+                                "[$targetLangCode] No 'fixedSourceLanguageValue' provided. Using " +
+                                    "auto-detected source language: '$effectiveSourceLangCode' " +
+                                    "(from defaultAppLanguage).",
+                            )
                         }
                     }
 
                     if (effectiveSourceLangCode.isNotBlank()) {
                         if (resolvedKeyForSourceLang.isNotBlank()) {
                             jsonPayloadForBatch[resolvedKeyForSourceLang] = effectiveSourceLangCode
-                            logger.info("[$targetLangCode] Sending source language using configured key: $resolvedKeyForSourceLang = $effectiveSourceLangCode")
+                            logger.info(
+                                "[$targetLangCode] Sending source language using configured key: " +
+                                    "$resolvedKeyForSourceLang = $effectiveSourceLangCode",
+                            )
                         } else {
                             logger.warn(
-                                "[$targetLangCode] An effective source language ('$effectiveSourceLangCode') was determined (fixed or auto-detected), " +
-                                        "but the 'keyForSourceLanguage' property (which defines the JSON key for the source language) is not set or is blank in the plugin configuration. " +
-                                        "Therefore, this source language cannot be added to the API request payload by default. " +
-                                        "Ensure 'keyForSourceLanguage' is also configured if you intend to send the source language."
+                                "[$targetLangCode] An effective source language " +
+                                    "('$effectiveSourceLangCode') was determined (fixed or " +
+                                    "auto-detected), but the 'keyForSourceLanguage' property " +
+                                    "(which defines the JSON key for the source language) is not " +
+                                    "set or is blank in the plugin configuration. Therefore, this " +
+                                    "source language cannot be added to the API request payload " +
+                                    "by default. Ensure 'keyForSourceLanguage' is also configured " +
+                                    "if you intend to send the source language.",
                             )
                         }
                     } else if (resolvedKeyForSourceLang.isNotBlank()) {
                         if (!jsonPayloadForBatch.containsKey(resolvedKeyForSourceLang)) {
                             logger.warn(
-                                "[$targetLangCode] The 'keyForSourceLanguage' ('$resolvedKeyForSourceLang') was specified in the plugin configuration, " +
-                                        "but no source language code was determined (neither from 'fixedSourceLanguageValue' nor via auto-detection). " +
-                                        "The key '$resolvedKeyForSourceLang' is also not found in 'additionalJsonBody'. " +
-                                        "The API might attempt to auto-detect the source language, or this specific source language key might be missing its value."
+                                "[$targetLangCode] The 'keyForSourceLanguage' ('$resolvedKeyForSourceLang') " +
+                                    "was specified in the plugin configuration, but no source " +
+                                    "language code was determined (neither from " +
+                                    "'fixedSourceLanguageValue' nor via auto-detection). The key " +
+                                    "'$resolvedKeyForSourceLang' is also not found in " +
+                                    "'additionalJsonBody'. The API might attempt to auto-detect " +
+                                    "the source language, or this specific source language key " +
+                                    "might be missing its value.",
                             )
                         } else {
-                            // The configured key (resolvedKeyForSourceLang) is already present in additionalJsonBody.
-                            logger.info("[$targetLangCode] The 'keyForSourceLanguage' ('$resolvedKeyForSourceLang') is configured " +
-                                    "and was found already present in 'additionalJsonBody'. Value: ${jsonPayloadForBatch[resolvedKeyForSourceLang]}")
+                            logger.info(
+                                "[$targetLangCode] The 'keyForSourceLanguage' ('$resolvedKeyForSourceLang') " +
+                                    "is configured and was found already present in 'additionalJsonBody'. " +
+                                    "Value: ${jsonPayloadForBatch[resolvedKeyForSourceLang]}",
+                            )
                         }
                     }
 
                     try {
-                        val translatedTextsInBatch = translateTextArrayApiCall(
-                            baseUrl = baseApiUrl.get(),
-                            httpMethod = httpMethod.get(),
-                            jsonPayloadToSend = jsonPayloadForBatch,
-                            expectedInputSize = currentBatchOfItems.size,
-                            logger = logger,
-                            contextualTargetLang = targetLangCode
-                        )
+                        val translatedTextsInBatch =
+                            translateTextArrayApiCall(
+                                baseUrl = baseApiUrl.get(),
+                                httpMethod = httpMethod.get(),
+                                jsonPayloadToSend = jsonPayloadForBatch,
+                                expectedInputSize = currentBatchOfItems.size,
+                                logger = logger,
+                                contextualTargetLang = targetLangCode,
+                            )
 
                         if (translatedTextsInBatch.size == currentBatchOfItems.size) {
                             currentBatchOfItems.forEachIndexed { index, batchItem ->
                                 translatedDataMap[batchItem.id] = translatedTextsInBatch[index]
                             }
                         } else {
-                            logger.error("[$targetLangCode] Batch ${batchIndex + 1} translation result size mismatch. Fallbacks will be used.")
+                            logger.error(
+                                "[$targetLangCode] Batch ${batchIndex + 1} translation result size mismatch. " +
+                                    "Fallbacks will be used.",
+                            )
                             currentBatchOfItems.forEachIndexed { _, batchItem ->
                                 translatedDataMap[batchItem.id] = batchItem.sourceText
                             }
@@ -383,8 +451,11 @@ abstract class GenerateTranslationsTask : DefaultTask() {
                             newTargetString.textContent = batchItem.sourceText
                             if (shouldTranslateViaApi) {
                                 try {
-                                    newTargetString.appendChild(targetDoc.createComment(" TODO: Translation failed "))
-                                } catch (_: DOMException) {}
+                                    newTargetString.appendChild(
+                                        targetDoc.createComment(" TODO: Translation failed "),
+                                    )
+                                } catch (_: DOMException) {
+                                }
                                 overallSuccess = false
                             }
                         }
@@ -392,13 +463,20 @@ abstract class GenerateTranslationsTask : DefaultTask() {
                     }
                     "item" -> {
                         val parentElementName = batchItem.parentResourceName ?: ""
-                        val parentElement = parentElementsInTargetDoc.getOrPut(parentElementName) {
-                            logger.warn("[$targetLangCode] Parent element '$parentElementName' for item '${batchItem.id}' was not pre-created. Creating now.")
-                            val newParent = targetDoc.createElement(batchItem.originalSourceElement.parentNode.nodeName)
-                            newParent.setAttribute("name", parentElementName)
-                            targetRootElement.appendChild(newParent)
-                            newParent
-                        }
+                        val parentElement =
+                            parentElementsInTargetDoc.getOrPut(parentElementName) {
+                                logger.warn(
+                                    "[$targetLangCode] Parent element '$parentElementName' for item " +
+                                        "'${batchItem.id}' was not pre-created. Creating now.",
+                                )
+                                val newParent =
+                                    targetDoc.createElement(
+                                        batchItem.originalSourceElement.parentNode.nodeName,
+                                    )
+                                newParent.setAttribute("name", parentElementName)
+                                targetRootElement.appendChild(newParent)
+                                newParent
+                            }
 
                         val newTargetItem = targetDoc.createElement("item")
                         if (batchItem.quantityKey != null) {
@@ -411,8 +489,11 @@ abstract class GenerateTranslationsTask : DefaultTask() {
                             newTargetItem.textContent = batchItem.sourceText
                             if (shouldTranslateViaApi) {
                                 try {
-                                    newTargetItem.appendChild(targetDoc.createComment(" TODO: Translation failed "))
-                                } catch (_: DOMException) {}
+                                    newTargetItem.appendChild(
+                                        targetDoc.createComment(" TODO: Translation failed "),
+                                    )
+                                } catch (_: DOMException) {
+                                }
                                 overallSuccess = false
                             }
                         }
@@ -424,7 +505,7 @@ abstract class GenerateTranslationsTask : DefaultTask() {
             parentElementsInTargetDoc.forEach { (_, parentElement) ->
                 if (parentElement.parentNode == null && parentElement.hasChildNodes()) {
                     targetRootElement.appendChild(parentElement)
-                } else if (parentElement.parentNode == null && !parentElement.hasChildNodes()){
+                } else if (parentElement.parentNode == null && !parentElement.hasChildNodes()) {
                     targetRootElement.appendChild(parentElement)
                 }
             }
@@ -436,18 +517,26 @@ abstract class GenerateTranslationsTask : DefaultTask() {
                 val transformer = transformerFactory.newTransformer()
                 transformer.setOutputProperty(OutputKeys.INDENT, "yes")
                 transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4")
-                FileOutputStream(targetXmlFile).use { fos -> transformer.transform(DOMSource(targetDoc), StreamResult(fos)) }
-                logger.lifecycle("[$targetLangCode] Generated: ${targetXmlFile.name} ($resourcesProcessedCount resources)")
+                FileOutputStream(targetXmlFile).use { fos ->
+                    transformer.transform(DOMSource(targetDoc), StreamResult(fos))
+                }
+                logger.lifecycle(
+                    "[$targetLangCode] Generated: ${targetXmlFile.name} " +
+                        "($resourcesProcessedCount resources)",
+                )
             } else {
                 logger.lifecycle(
                     "[$targetLangCode] No translatable resources were processed or generated for this language. " +
-                            "The file ${targetXmlFile.name} would be empty or contain only comments."
+                        "The file ${targetXmlFile.name} would be empty or contain only comments.",
                 )
 
                 if (targetXmlFile.exists()) {
                     val deleted = targetXmlFile.delete()
                     if (deleted) {
-                        logger.info("[$targetLangCode] Deleted empty/non-resource file: ${targetXmlFile.absolutePath}")
+                        logger.info(
+                            "[$targetLangCode] Deleted empty/non-resource file: " +
+                                "${targetXmlFile.absolutePath}",
+                        )
 
                         val parentDir = targetXmlFile.parentFile
                         if (parentDir != null && parentDir.isDirectory && parentDir.listFiles()?.isEmpty() == true) {
@@ -455,47 +544,58 @@ abstract class GenerateTranslationsTask : DefaultTask() {
                             if (parentDir.canonicalPath != outputBaseResPath && parentDir.name.startsWith("values-")) {
                                 val parentDeleted = parentDir.delete()
                                 if (parentDeleted) {
-                                    logger.info("[$targetLangCode] Deleted empty parent directory: ${parentDir.absolutePath}")
+                                    logger.info(
+                                        "[$targetLangCode] Deleted empty parent directory: " +
+                                            "${parentDir.absolutePath}",
+                                    )
                                 } else {
-                                    logger.warn("[$targetLangCode] Could not delete empty parent directory: ${parentDir.absolutePath}. " +
-                                            "It might be locked or not truly empty.")
+                                    logger.warn(
+                                        "[$targetLangCode] Could not delete empty parent directory: " +
+                                            "${parentDir.absolutePath}. It might be locked or not truly empty.",
+                                    )
                                 }
                             }
                         }
                     } else {
-                        logger.warn("[$targetLangCode] Could not delete empty/non-resource file: ${targetXmlFile.absolutePath}. It might be locked.")
+                        logger.warn(
+                            "[$targetLangCode] Could not delete empty/non-resource file:" +
+                                " ${targetXmlFile.absolutePath}. It might be locked.",
+                        )
                     }
                 } else {
-                    logger.info("[$targetLangCode] No file was written for ${targetXmlFile.name} as no resources were generated.")
+                    logger.info(
+                        "[$targetLangCode] No file was written for ${targetXmlFile.name} " +
+                            "as no resources were generated.",
+                    )
                 }
             }
         }
 
         if (!overallSuccess) {
-            val errorMessage = "One or more translations failed during the 'GenerateTranslationsTask' for project '${consumingProject.name}'. " +
-                    "Check the logs above for specific errors (search for '[ERROR]'). " +
-                    "Files with failures will contain 'TODO: Translation failed' comments next to the affected resources."
+            val errorMessage =
+                "One or more translations failed during the 'GenerateTranslationsTask' " +
+                    "for project '${consumingProject.name}'. Check the logs above for specific " +
+                    "errors (search for '[ERROR]'). Files with failures will contain " +
+                    "'TODO: Translation failed' comments next to the affected resources."
             logger.error("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
             logger.error("!!! TRANSLATION TASK COMPLETED WITH ERRORS for ${consumingProject.name} !!!")
             logger.error(errorMessage)
             logger.error("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
             throw GradleException(errorMessage)
-
         } else {
             logger.lifecycle("All specified languages processed successfully for ${consumingProject.name}.")
         }
     }
 
-    fun String.escapeForAndroidXml(): String {
-        return this
+    fun String.escapeForAndroidXml(): String =
+        this
             .replace("&", "&amp;")
             .replace("<", "&lt;")
             .replace(">", "&gt;")
             .replace("'", "\\'")
             .replace("\"", "\\\"")
             .replace("\n", "\\n")
-    }
-
+            .replace(Regex("(?<!%)%(?![\\d${'$'}sSdfFcbBxXonT])"), "%%")
 
     private fun countElements(node: Node): Int {
         var count = 0
@@ -506,22 +606,33 @@ abstract class GenerateTranslationsTask : DefaultTask() {
         return count
     }
 
+    @Suppress("LongMethod", "LongParameterList")
     private fun translateTextArrayApiCall(
         baseUrl: String,
         httpMethod: String,
         jsonPayloadToSend: JSONObject,
         expectedInputSize: Int,
         logger: Logger,
-        contextualTargetLang: String? = null
+        contextualTargetLang: String? = null,
     ): List<String> {
-        val textsSentToApi = jsonPayloadToSend[keyForTextsToTranslate.get()] as? JSONArray
-            ?: throw GradleException("Payload for batch API call does not contain the expected JSONArray at key '${keyForTextsToTranslate.get()}'.")
+        val textsSentToApi =
+            jsonPayloadToSend[keyForTextsToTranslate.get()] as? JSONArray
+                ?: throw GradleException(
+                    "Payload for batch API call does not contain the expected JSONArray " +
+                        "at key '${keyForTextsToTranslate.get()}'.",
+                )
 
         if (textsSentToApi.size != expectedInputSize) {
-            logger.warn("[$contextualTargetLang] Internal mismatch: textsSentToApi size (${textsSentToApi.size}) != expectedInputSize ($expectedInputSize).")
+            logger.warn(
+                "[$contextualTargetLang] Internal mismatch: textsSentToApi size " +
+                    "(${textsSentToApi.size}) != expectedInputSize ($expectedInputSize).",
+            )
         }
 
-        val effectiveTargetLang = contextualTargetLang ?: jsonPayloadToSend[keyForTargetLanguage.get()] as? String ?: "unknown_target"
+        val effectiveTargetLang =
+            contextualTargetLang
+                ?: jsonPayloadToSend[keyForTargetLanguage.get()] as? String
+                ?: "unknown_target"
         logger.info("[$effectiveTargetLang] Attempting to translate batch of ${textsSentToApi.size} strings.")
 
         val originalTexts = textsSentToApi.mapNotNull { it?.toString() }
@@ -529,112 +640,232 @@ abstract class GenerateTranslationsTask : DefaultTask() {
             logger.warn("[$effectiveTargetLang] Some original texts in the batch were null or not strings.")
         }
 
+        var translatedTexts: List<String> = originalTexts.map { it.escapeForAndroidXml() }
+
+        val (finalUrlString, finalPayload) =
+            prepareRequestDetails(
+                baseUrl,
+                httpMethod,
+                jsonPayloadToSend,
+                effectiveTargetLang,
+                logger,
+            )
+
+        val conn: HttpURLConnection
+        try {
+            conn = URI(finalUrlString).toURL().openConnection() as HttpURLConnection
+            configureConnection(conn, httpMethod, finalPayload, jsonPayloadToSend, effectiveTargetLang, logger)
+        } catch (e: Exception) {
+            logger.error(
+                "[$effectiveTargetLang] Exception preparing connection: ${e.message}. " +
+                    "URL: $finalUrlString",
+                e,
+            )
+            return translatedTexts
+        }
+
+        try {
+            if (finalPayload != null && conn.doOutput) {
+                sendPayload(conn, finalPayload)
+            }
+
+            val responseCode = conn.responseCode
+            if (responseCode == HttpURLConnection.HTTP_OK) {
+                val responseBody = conn.inputStream.bufferedReader(StandardCharsets.UTF_8).readText()
+                translatedTexts = parseSuccessfulResponse(
+                    responseBody,
+                    expectedInputSize,
+                    responseKeyForTranslatedTextsArray.get(),
+                    effectiveTargetLang,
+                    logger,
+                ) ?: translatedTexts // Keep default if parsing fails
+            } else {
+                logApiError(conn, responseCode, finalUrlString, finalPayload, effectiveTargetLang, logger)
+            }
+        } catch (e: Exception) {
+            logger.error(
+                "[$effectiveTargetLang] Exception during API call for batch: ${e.message}. " +
+                    "URL: $finalUrlString, Payload: $finalPayload",
+                e,
+            )
+        } finally {
+            conn.disconnect()
+        }
+
+        return translatedTexts
+    }
+
+    @Suppress("NestedBlockDepth")
+    private fun prepareRequestDetails(
+        baseUrl: String,
+        httpMethod: String,
+        jsonPayloadToSend: JSONObject,
+        effectiveTargetLang: String,
+        logger: Logger,
+    ): Pair<String, String?> {
         val finalUrlString: String
         val finalPayload: String?
 
         if (httpMethod.equals("GET", ignoreCase = true)) {
             val queryParams = StringBuilder()
             jsonPayloadToSend.forEach { (key, value) ->
-                if (queryParams.isNotEmpty()) queryParams.append("&")
-                queryParams.append("${URLEncoder.encode(key.toString(), StandardCharsets.UTF_8.name())}=${URLEncoder.encode(value.toString(), StandardCharsets.UTF_8.name())}")
+                if (key != "_headers") {
+                    if (queryParams.isNotEmpty()) queryParams.append("&")
+                    queryParams.append(
+                        "${URLEncoder.encode(key.toString(), StandardCharsets.UTF_8.name())}=" +
+                            "${URLEncoder.encode(value.toString(), StandardCharsets.UTF_8.name())}",
+                    )
+                }
             }
-            finalUrlString = if (baseUrl.contains("?")) "$baseUrl&$queryParams" else "$baseUrl?$queryParams"
+            finalUrlString =
+                if (baseUrl.contains("?")) {
+                    "$baseUrl&$queryParams"
+                } else {
+                    "$baseUrl?$queryParams"
+                }
             finalPayload = null
             logger.info("[$effectiveTargetLang] GET $finalUrlString")
         } else {
             finalUrlString = baseUrl
-            finalPayload = jsonPayloadToSend.toJSONString()
-            logger.info("[$effectiveTargetLang] $httpMethod $finalUrlString with payload: $finalPayload")
+            val payloadWithoutHeaders = JSONObject()
+            jsonPayloadToSend.forEach { (key, value) ->
+                if (key != "_headers") {
+                    payloadWithoutHeaders[key] = value
+                }
+            }
+            finalPayload = payloadWithoutHeaders.toJSONString()
+            logger.info(
+                "[$effectiveTargetLang] $httpMethod $finalUrlString with payload: $finalPayload",
+            )
         }
+        return Pair(finalUrlString, finalPayload)
+    }
 
-        val url = URI(finalUrlString).toURL()
-        val conn = url.openConnection() as HttpURLConnection
+    @Suppress("LongParameterList")
+    private fun configureConnection(
+        conn: HttpURLConnection,
+        httpMethod: String,
+        finalPayload: String?,
+        jsonPayloadToSend: JSONObject,
+        effectiveTargetLang: String,
+        logger: Logger,
+    ) {
+        conn.requestMethod = httpMethod.uppercase()
+        conn.setRequestProperty("Accept", "application/json")
+        if (finalPayload != null && !httpMethod.equals("GET", ignoreCase = true)) {
+            conn.setRequestProperty("Content-Type", "application/json; charset=utf-8")
+            conn.doOutput = true
+        }
+        conn.connectTimeout = connectionTimeoutMs.get()
+        conn.readTimeout = readTimeoutMs.get()
 
-        try {
-            conn.requestMethod = httpMethod.uppercase()
-            conn.setRequestProperty("Accept", "application/json")
-            if (finalPayload != null && !httpMethod.equals("GET", ignoreCase = true)) {
-                conn.setRequestProperty("Content-Type", "application/json; charset=utf-8")
-                conn.doOutput = true
+        (jsonPayloadToSend["_headers"] as? JSONObject)?.forEach { headerKey, headerValue ->
+            if (headerKey is String && headerValue is String) {
+                conn.setRequestProperty(headerKey, headerValue)
+                logger.info(
+                    "[$effectiveTargetLang] Added header from _headers: $headerKey = $headerValue",
+                )
             }
-            conn.connectTimeout = connectionTimeoutMs.get()
-            conn.readTimeout = readTimeoutMs.get()
+        }
+    }
 
-            (jsonPayloadToSend["_headers"] as? JSONObject)?.forEach { headerKey, headerValue ->
-                if (headerKey is String && headerValue is String) {
-                    conn.setRequestProperty(headerKey, headerValue)
-                    logger.info("[$effectiveTargetLang] Added header from _headers: $headerKey = $headerValue")
-                }
+    private fun sendPayload(
+        conn: HttpURLConnection,
+        payload: String,
+    ) {
+        OutputStreamWriter(conn.outputStream, StandardCharsets.UTF_8).use { writer ->
+            writer.write(payload)
+            writer.flush()
+        }
+    }
+
+    private fun parseSuccessfulResponse(
+        responseBody: String,
+        expectedInputSize: Int,
+        responseArrayKeyPath: String,
+        effectiveTargetLang: String,
+        logger: Logger,
+    ): List<String>? {
+        val parser = JSONParser()
+        val responseJson =
+            parser.parse(responseBody) as? JSONObject ?: run {
+                logger.error(
+                    "[$effectiveTargetLang] API Error: Response body is not a valid JSON object. " +
+                        "Body: $responseBody",
+                )
+                return null
             }
 
+        var result: List<String>? = null
 
-            if (finalPayload != null && conn.doOutput) {
-                OutputStreamWriter(conn.outputStream, StandardCharsets.UTF_8).use { writer ->
-                    writer.write(finalPayload)
-                    writer.flush()
-                }
-            }
+        var extractedValue: Any? = responseJson
+        var pathTraversalSuccess = true
+        responseArrayKeyPath.split('.').forEach { keyComponent ->
+            if (!pathTraversalSuccess) return@forEach
 
-            val responseCode = conn.responseCode
-            if (responseCode == HttpURLConnection.HTTP_OK) {
-                val responseBody = conn.inputStream.bufferedReader(StandardCharsets.UTF_8).readText()
-                val parser = JSONParser()
-                val responseJson = parser.parse(responseBody) as JSONObject
-
-                val responseArrayKey = responseKeyForTranslatedTextsArray.get()
-                var extractedValue: Any? = responseJson
-
-                responseArrayKey.split('.').forEach { keyComponent ->
-                    val currentStageValue = extractedValue
-                    if (currentStageValue is JSONObject) {
-                        extractedValue = currentStageValue[keyComponent]
-                    } else {
-                        extractedValue = null
-                        return@forEach
-                    }
-                }
-
-                val finalExtractedValue = extractedValue
-
-                if (finalExtractedValue is JSONArray) {
-                    if (finalExtractedValue.size == expectedInputSize) {
-                        val translatedResults = finalExtractedValue.mapNotNull { it?.toString() }
-                        if (translatedResults.size != expectedInputSize) {
-                            logger.error(
-                                "[$effectiveTargetLang] API response array contained nulls or non-string items. " +
-                                        "Expected $expectedInputSize strings, got ${translatedResults.size} valid strings. " +
-                                        "Using originals for missing."
-                            )
-                            return originalTexts.map { it.escapeForAndroidXml() }
-                        }
-                        logger.info("[$effectiveTargetLang] Successfully translated batch of $expectedInputSize strings.")
-                        return translatedResults.map { it.escapeForAndroidXml() }
-                    } else {
-                        logger.error(
-                            "[$effectiveTargetLang] API Error: Translated texts array size (${finalExtractedValue.size}) " +
-                                    "does NOT match expected input size ($expectedInputSize) for response key '$responseArrayKey'. " +
-                                    "Response: $responseBody"
-                        )
-                        return originalTexts.map { it.escapeForAndroidXml() }
-                    }
-                } else {
-                    logger.error(
-                        "[$effectiveTargetLang] API Error: Expected a JSONArray at key '$responseArrayKey' in response, " +
-                                "but found ${finalExtractedValue?.javaClass?.simpleName}. Response: $responseBody"
-                    )
-                    return originalTexts.map { it.escapeForAndroidXml() }
-                }
+            val currentStageValue = extractedValue
+            if (currentStageValue is JSONObject) {
+                extractedValue = currentStageValue[keyComponent]
             } else {
-                val errorBodyStream = conn.errorStream ?: conn.inputStream
-                val errorBody = errorBodyStream?.bufferedReader(StandardCharsets.UTF_8)?.readText() ?: "No error body"
-                logger.error("[$effectiveTargetLang] API Error ($responseCode) for batch. URL: $finalUrlString, Payload: $finalPayload, Response: $errorBody")
-                return originalTexts.map { it.escapeForAndroidXml() }
+                logger.error(
+                    "[$effectiveTargetLang] API Error: Could not find key '$keyComponent' " +
+                        "at path '$responseArrayKeyPath' in response. Response: $responseBody",
+                )
+                pathTraversalSuccess = false
             }
-        } catch (e: Exception) {
-            logger.error("[$effectiveTargetLang] Exception during API call for batch: ${e.message}. URL: $finalUrlString, Payload: $finalPayload", e)
-            return originalTexts.map { it.escapeForAndroidXml() }
-        } finally {
-            conn.disconnect()
         }
+
+        if (pathTraversalSuccess) {
+            val finalExtractedValue = extractedValue
+            if (finalExtractedValue !is JSONArray) {
+                logger.error(
+                    "[$effectiveTargetLang] API Error: Expected a JSONArray at key " +
+                        "'$responseArrayKeyPath' in response, but found " +
+                        "${finalExtractedValue?.javaClass?.simpleName}. Response: $responseBody",
+                )
+            } else if (finalExtractedValue.size != expectedInputSize) {
+                logger.error(
+                    "[$effectiveTargetLang] API Error: Translated texts array size " +
+                        "(${finalExtractedValue.size}) does NOT match expected input size " +
+                        "($expectedInputSize) for response key '$responseArrayKeyPath'. " +
+                        "Response: $responseBody",
+                )
+            } else {
+                val mappedResults = finalExtractedValue.mapNotNull { it?.toString() }
+                if (mappedResults.size != expectedInputSize) {
+                    logger.error(
+                        "[$effectiveTargetLang] API response array contained nulls or non-string items. " +
+                            "Expected $expectedInputSize strings, got ${mappedResults.size} " +
+                            "valid strings.",
+                    )
+                } else {
+                    logger.info(
+                        "[$effectiveTargetLang] Successfully translated batch of " +
+                            "$expectedInputSize strings.",
+                    )
+                    result = mappedResults.map { it.escapeForAndroidXml() }
+                }
+            }
+        }
+        return result
+    }
+
+    @Suppress("LongParameterList")
+    private fun logApiError(
+        conn: HttpURLConnection,
+        responseCode: Int,
+        finalUrlString: String,
+        finalPayload: String?,
+        effectiveTargetLang: String,
+        logger: Logger,
+    ) {
+        val errorBodyStream = conn.errorStream ?: conn.inputStream
+        val errorBody =
+            errorBodyStream?.bufferedReader(StandardCharsets.UTF_8)?.readText()
+                ?: "No error body"
+        logger.error(
+            "[$effectiveTargetLang] API Error ($responseCode) for batch. " +
+                "URL: $finalUrlString, Payload: $finalPayload, Response: $errorBody",
+        )
     }
 }

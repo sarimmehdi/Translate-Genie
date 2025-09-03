@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <resources>
-    <!-- Auto-generated for 'de' by TranslateGenie on 2025-09-03 20:15:07 MESZ -->
+    <!-- Auto-generated for 'de' by TranslateGenie on 2025-09-03 21:41:28 MESZ -->
     <string name="app_name" translatable="false">My Example App</string>
     <!-- Note: %% for literal % -->
     <string name="product_serial_number" translatable="false">SN_12345_ABC</string>
@@ -8,14 +8,14 @@
     <string name="welcome_greeting">Hallo!</string>
     <string name="action_button_text">Klicken Sie auf mich</string>
     <string name="my_name">Mein Name ist %1$ und ich bin %2$d Jahre alt.</string>
-    <string name="status_update">Datei %1$s verarbeitet. Fortschritt: %2$d%.</string>
+    <string name="status_update">Datei %1$s verarbeitet. Fortschritt: %2$d%%.</string>
     <string name="escaped_characters">Dieser String enthält &amp;lt;XML Tags&amp;gt; &amp;amp; an ampersand.</string>
     <string name="quote_example">Sie sagte, \\"Es ist ein wunderbarer Tag!\\"</string>
     <string name="multiline_string">Das ist eine Zeile. Das ist Linie zwei.</string>
     <string name="tabbed_string">Gegenstand: tValue</string>
     <string name="unicode_example">Copyright-Symbol: \u00A9</string>
     <string name="feature_description_translatable">Diese Funktion hilft Ihnen, Ihre Aufgaben zu organisieren.</string>
-    <string name="literal_percentage">Bitte geben Sie 50% als Wert ein.</string>
+    <string name="literal_percentage">Bitte geben Sie 50%% als Wert ein.</string>
     <string name="default_formatted_string">Ihre Bewertung ist %1$d Punkte.</string>
     <string name="fitness_gram_pacer_test_line1">Der FitnessGramTM Pacer Test ist ein mehrstufiger aerobe Kapazitätstest</string>
     <string name="fitness_gram_pacer_test_line2">das immer schwieriger wird, wie es weitergeht. 20 Meter Temporär</string>

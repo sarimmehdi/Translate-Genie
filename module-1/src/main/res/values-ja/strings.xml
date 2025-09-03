@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<resources>
+    <!-- Auto-generated for 'ja' by TranslateGenie on 2025-09-03 21:41:42 MESZ -->
+    <string name="app_name" translatable="false">My Example App</string>
+    <!-- Note: %% for literal % -->
+    <string name="product_serial_number" translatable="false">SN_12345_ABC</string>
+    <!-- formatted="true" by default -->
+    <string name="welcome_greeting">お問い合わせ!</string>
+    <string name="action_button_text">ここをクリック</string>
+    <string name="my_name">私の名前は%1$で、私は%2$dの歳です.</string>
+    <string name="status_update">処理されるファイル%1$s。 進捗率:%2$d%%%.</string>
+    <string name="escaped_characters">この文字列には、&amp;lt;XML タグ&amp;gt;とアンパサンドが含まれている.</string>
+    <string name="quote_example">彼女は言った。「それは素晴らしい一日です!\」</string>
+    <string name="multiline_string">これは1行です。\n 2行目です.</string>
+    <string name="tabbed_string">アイテム:\tValue</string>
+    <string name="unicode_example">著作権記号:\u00A9</string>
+    <string name="feature_description_translatable">この機能は、タスクを整理するのに役立ちます.</string>
+    <string name="literal_percentage">値として50%%を入力してください.</string>
+    <string name="default_formatted_string">スコアは %1$d ポイントです.</string>
+    <string name="fitness_gram_pacer_test_line1">FitnessGramTMパサー 試験は多段有酸素能力試験です</string>
+    <string name="fitness_gram_pacer_test_line2">継続してより難しくなります。 20メートルのスペーサ</string>
+    <string name="fitness_gram_pacer_test_line3">30秒でテストが開始されます。 スタート時にラインアップ。 走行速度</string>
+    <string name="fitness_gram_pacer_test_line4">この信号を聞きながら、ゆっくりスタートします.</string>
+    <string name="fitness_gram_pacer_test_line5">[beep] 音を聴くたびに一周一周完走する.</string>
+    <string name="fitness_gram_pacer_test_line6">[ding] 直線で実行し、可能な限り実行することを忘れないでください.</string>
+    <string name="fitness_gram_pacer_test_line7">音の前にラップを完成させるのに失敗する2番目の時間は、あなたのテストは</string>
+    <string name="fitness_gram_pacer_test_line8">お問い合わせ テストは単語の開始から始まります。 あなたのマークで、準備ができて、スタート!</string>
+    <string-array name="days_of_week_short">
+        <item>月曜日～金曜日</item>
+        <item>火曜日</item>
+        <item>水曜日</item>
+        <item>木曜日</item>
+        <item>金曜日</item>
+        <item>土曜日</item>
+        <item>日曜日</item>
+    </string-array>
+    <plurals name="all_quantities">
+        <item quantity="zero">アイテムのゼロ(%d)</item>
+        <item quantity="one">正確に1つの項目があります(%d)</item>
+        <item quantity="two">特に2つの項目(%d)があります</item>
+        <item quantity="few">%d のようないくつかの項目があります(例えば、言語の 2–4 のような小さな数)</item>
+        <item quantity="many">%d(例、数が大きい、または特定の範囲が0、言語の5〜10など)などの多くの項目があります</item>
+        <item quantity="other">その他の項目(%d)がいくつかあります(これは必須のフォールバックです)</item>
+    </plurals>
+</resources>

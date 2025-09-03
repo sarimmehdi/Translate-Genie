@@ -8,11 +8,16 @@ data class BatchItem(
     val sourceText: String,
     val originalSourceElement: Element,
     val parentResourceName: String? = null,
-    val quantityKey: String? = null
+    val quantityKey: String? = null,
 ) {
     companion object {
-        fun generateUniqueId(resourceName: String, resourceType: String, indexIfArray: Int?, quantityIfPlural: String?): String {
-            return when (resourceType) {
+        fun generateUniqueId(
+            resourceName: String,
+            resourceType: String,
+            indexIfArray: Int?,
+            quantityIfPlural: String?,
+        ): String =
+            when (resourceType) {
                 "string" -> resourceName
                 "item" -> {
                     if (quantityIfPlural != null) {
@@ -27,6 +32,5 @@ data class BatchItem(
                 "plurals" -> "$resourceName@plurals_parent"
                 else -> "$resourceName@$resourceType"
             }
-        }
     }
 }

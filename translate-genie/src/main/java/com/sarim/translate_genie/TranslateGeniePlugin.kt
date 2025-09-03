@@ -5,11 +5,12 @@ import org.gradle.api.Project
 
 class TranslateGeniePlugin : Plugin<Project> {
     override fun apply(project: Project) {
-        val extension = project.extensions.create(
-            "translateGenie",
-            TranslateGenieExtension::class.java,
-            project.objects
-        )
+        val extension =
+            project.extensions.create(
+                "translateGenie",
+                TranslateGenieExtension::class.java,
+                project.objects,
+            )
 
         project.afterEvaluate {
             val isAndroidApp = project.plugins.hasPlugin("com.android.application")
@@ -32,17 +33,22 @@ class TranslateGeniePlugin : Plugin<Project> {
                     this.responseKeyForTranslatedTextsArray.set(extension.responseKeyForTranslatedTextsArray)
                     this.connectionTimeoutMs.set(extension.connectionTimeoutMs)
                     this.readTimeoutMs.set(extension.readTimeoutMs)
+                    this.batchSize.set(extension.batchSize)
 
                     this.outputBaseResDirectory.set(project.layout.projectDirectory.dir("src/main/res"))
                     this.taskSpecificLogger.set(project.logger)
                 }
-                project.logger.info("TranslateGeniePlugin: 'generateProjectTranslations' task registered for ${project.name}.")
+                project.logger.info(
+                    "TranslateGeniePlugin: 'generateProjectTranslations' task registered for " +
+                        "${project.name}.",
+                )
             } else {
-                project.logger.info("TranslateGeniePlugin: Not an Android project (${project.name}), " +
-                        "'generateProjectTranslations' task not registered.")
+                project.logger.info(
+                    "TranslateGeniePlugin: Not an Android project (${project.name}), " +
+                        "'generateProjectTranslations' task not registered.",
+                )
             }
         }
         project.logger.info("TranslateGeniePlugin applied. Configure via 'translateGenie' extension.")
     }
 }
-
