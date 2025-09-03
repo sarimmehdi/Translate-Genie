@@ -779,6 +779,7 @@ abstract class GenerateTranslationsTask : DefaultTask() {
         }
     }
 
+    @Suppress("LongMethod")
     private fun parseSuccessfulResponse(
         responseBody: String,
         expectedInputSize: Int,
