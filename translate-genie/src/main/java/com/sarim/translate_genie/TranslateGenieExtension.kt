@@ -1,9 +1,13 @@
 package com.sarim.translate_genie
 
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
+import javax.inject.Inject
 
-abstract class TranslateGenieExtension {
+abstract class TranslateGenieExtension @Inject constructor(
+    @Suppress("UNUSED_PARAMETER") objects: ObjectFactory
+) {
     abstract val baseApiUrl: Property<String>
     abstract val httpMethod: Property<String>
 
@@ -24,7 +28,6 @@ abstract class TranslateGenieExtension {
 
     init {
         httpMethod.convention("POST")
-        keyForSourceLanguage.convention("")
         fixedSourceLanguageValue.convention("")
         additionalJsonBody.convention("{}")
         defaultAppLanguage.convention("en")

@@ -19,6 +19,7 @@ subprojects {
     pluginManager.apply(rootProject.libs.plugins.ktlintPlugin.get().pluginId)
     pluginManager.apply(rootProject.libs.plugins.detektPlugin.get().pluginId)
     pluginManager.apply(rootProject.libs.plugins.spotlessPlugin.get().pluginId)
+    pluginManager.apply(rootProject.libs.plugins.translateGeniePluginId.get().pluginId)
 
     configure<DetektExtension> {
         parallel = true
@@ -49,5 +50,7 @@ subprojects {
         keyForTextsToTranslate = "q"
         keyForTargetLanguage = "target"
         targetLanguagesList = listOf("it", "de")
+        responseKeyForTranslatedTextsArray = "translatedText"
+        keyForSourceLanguage = "source"
     }
 }

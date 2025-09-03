@@ -1,20 +1,22 @@
-<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <resources>
-    <!-- File auto-generated for language 'it'-->
+    <!-- Auto-generated for 'it' by TranslateGenie on 2025-09-03 20:15:05 MESZ -->
+    <string name="app_name" translatable="false">My Example App</string>
+    <!-- Note: %% for literal % -->
+    <string name="product_serial_number" translatable="false">SN_12345_ABC</string>
+    <!-- formatted="true" by default -->
     <string name="welcome_greeting">Ciao!</string>
     <string name="action_button_text">Clicca su</string>
     <string name="my_name">Il mio nome è %1$s e ho %2$d anni.</string>
     <string name="status_update">File %1$s elaborato. Progressi: %2$d%%.</string>
-    <!-- Note: %% for literal % -->
-    <string name="escaped_characters">Questa stringa contiene &lt;XML Tags&gt; &amp; ampersand.</string>
-    <string name="quote_example">Ha detto, \"È una giornata meravigliosa!\"</string>
+    <string name="escaped_characters">Questa stringa contiene &amp;lt;XML Tags&amp;gt; &amp;amp; ampersand.</string>
+    <string name="quote_example">Ha detto, \\"È una giornata meravigliosa!\\"</string>
     <string name="multiline_string">Questa è la linea uno. Questa è la linea due.</string>
     <string name="tabbed_string">Articolo:\tValue</string>
     <string name="unicode_example">Copyright simbolo: \u00A9</string>
     <string name="feature_description_translatable">Questa funzione ti aiuta a organizzare i tuoi compiti.</string>
     <string name="literal_percentage">Si prega di inserire il 50% come valore.</string>
     <string name="default_formatted_string">Il tuo punteggio è %1$d punti.</string>
-    <!-- formatted="true" by default -->
     <string name="fitness_gram_pacer_test_line1">Il FitnessGramTM Pacer Il test è un test multistadio di capacità aerobica</string>
     <string name="fitness_gram_pacer_test_line2">che progressivamente diventa più difficile come continua. Il pacer di 20 metri</string>
     <string name="fitness_gram_pacer_test_line3">il test inizierà in 30 secondi. All\'inizio. La velocità di esecuzione</string>

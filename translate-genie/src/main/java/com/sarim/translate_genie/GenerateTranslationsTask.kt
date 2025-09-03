@@ -27,6 +27,8 @@ import java.net.HttpURLConnection
 import java.net.URI
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
+import java.text.SimpleDateFormat
+import java.util.Date
 import javax.xml.XMLConstants
 import javax.xml.parsers.DocumentBuilderFactory
 import javax.xml.transform.OutputKeys
@@ -39,7 +41,9 @@ import kotlin.collections.forEach
 import kotlin.collections.isNotEmpty
 import kotlin.collections.set
 import kotlin.text.isBlank
+import kotlin.text.isNotBlank
 import kotlin.text.split
+import java.util.Locale
 
 abstract class GenerateTranslationsTask : DefaultTask() {
 
@@ -124,6 +128,15 @@ abstract class GenerateTranslationsTask : DefaultTask() {
             throw GradleException("Error parsing additionalJsonBody: ${e.message}", e)
         }
 
+        var detectedOrFixedSourceLanguage = fixedSourceLanguageValue.getOrElse("").ifBlank { null }
+        if (detectedOrFixedSourceLanguage == null) {
+            detectedOrFixedSourceLanguage = defaultAppLanguage.get()
+            logger.lifecycle("No fixedSourceLanguageValue set. Using defaultAppLanguage ('$detectedOrFixedSourceLanguage') as the source language for API calls.")
+        } else {
+            logger.lifecycle("Using fixedSourceLanguageValue ('$detectedOrFixedSourceLanguage') as the source language for API calls.")
+        }
+
+
         val consumingProject = project
         logger.lifecycle(">>> Processing project: ${consumingProject.name}")
 
@@ -169,7 +182,10 @@ abstract class GenerateTranslationsTask : DefaultTask() {
             val targetDoc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument()
             val targetRootElement = targetDoc.createElement("resources")
             targetDoc.appendChild(targetRootElement)
-            targetRootElement.appendChild(targetDoc.createComment(" Auto-generated for '$targetLangCode' by TranslateGenie "))
+            val currentTimestamp = SimpleDateFormat("yyyy-MM-dd HH:mm:ss z", Locale.getDefault()).format(
+                Date()
+            )
+            targetRootElement.appendChild(targetDoc.createComment(" Auto-generated for '$targetLangCode' by TranslateGenie on $currentTimestamp "))
 
             val itemsToTranslateForThisLang = mutableListOf<BatchItem>()
             val parentElementsInTargetDoc = mutableMapOf<String, Element>()
@@ -286,12 +302,40 @@ abstract class GenerateTranslationsTask : DefaultTask() {
                     jsonPayloadForBatch[apiKeyForTextBatch] = textsOnlyForApi
                     jsonPayloadForBatch[keyForTargetLanguage.get()] = targetLangCode
 
-                    if (resolvedFixedSourceLang.isNotBlank()) {
-                        jsonPayloadForBatch[resolvedKeyForSourceLang.ifBlank { "source" }] = resolvedFixedSourceLang
+                    var effectiveSourceLangCode = resolvedFixedSourceLang
+
+                    if (effectiveSourceLangCode.isBlank()) {
+                        val autoDetectionIsEnabled = true
+                        if (autoDetectionIsEnabled && defaultAppLang.isNotBlank()) {
+                            effectiveSourceLangCode = defaultAppLang
+                            logger.info("[$targetLangCode] No 'fixedSourceLanguageValue' provided. Using auto-detected source language: '$effectiveSourceLangCode' (from defaultAppLanguage).")
+                        }
+                    }
+
+                    if (effectiveSourceLangCode.isNotBlank()) {
+                        if (resolvedKeyForSourceLang.isNotBlank()) {
+                            jsonPayloadForBatch[resolvedKeyForSourceLang] = effectiveSourceLangCode
+                            logger.info("[$targetLangCode] Sending source language using configured key: $resolvedKeyForSourceLang = $effectiveSourceLangCode")
+                        } else {
+                            logger.warn(
+                                "[$targetLangCode] An effective source language ('$effectiveSourceLangCode') was determined (fixed or auto-detected), " +
+                                        "but the 'keyForSourceLanguage' property (which defines the JSON key for the source language) is not set or is blank in the plugin configuration. " +
+                                        "Therefore, this source language cannot be added to the API request payload by default. " +
+                                        "Ensure 'keyForSourceLanguage' is also configured if you intend to send the source language."
+                            )
+                        }
                     } else if (resolvedKeyForSourceLang.isNotBlank()) {
                         if (!jsonPayloadForBatch.containsKey(resolvedKeyForSourceLang)) {
-                            logger.warn("[$targetLangCode] A key for source language ('$resolvedKeyForSourceLang') " +
-                                    "was specified, but no value found via fixedSourceLanguageValue or in additionalJsonBody. API might auto-detect.")
+                            logger.warn(
+                                "[$targetLangCode] The 'keyForSourceLanguage' ('$resolvedKeyForSourceLang') was specified in the plugin configuration, " +
+                                        "but no source language code was determined (neither from 'fixedSourceLanguageValue' nor via auto-detection). " +
+                                        "The key '$resolvedKeyForSourceLang' is also not found in 'additionalJsonBody'. " +
+                                        "The API might attempt to auto-detect the source language, or this specific source language key might be missing its value."
+                            )
+                        } else {
+                            // The configured key (resolvedKeyForSourceLang) is already present in additionalJsonBody.
+                            logger.info("[$targetLangCode] The 'keyForSourceLanguage' ('$resolvedKeyForSourceLang') is configured " +
+                                    "and was found already present in 'additionalJsonBody'. Value: ${jsonPayloadForBatch[resolvedKeyForSourceLang]}")
                         }
                     }
 
@@ -442,6 +486,16 @@ abstract class GenerateTranslationsTask : DefaultTask() {
         }
     }
 
+    fun String.escapeForAndroidXml(): String {
+        return this
+            .replace("&", "&amp;")
+            .replace("<", "&lt;")
+            .replace(">", "&gt;")
+            .replace("'", "\\'")
+            .replace("\"", "\\\"")
+            .replace("\n", "\\n")
+    }
+
 
     private fun countElements(node: Node): Int {
         var count = 0
@@ -551,34 +605,34 @@ abstract class GenerateTranslationsTask : DefaultTask() {
                                         "Expected $expectedInputSize strings, got ${translatedResults.size} valid strings. " +
                                         "Using originals for missing."
                             )
-                            return originalTexts
+                            return originalTexts.map { it.escapeForAndroidXml() }
                         }
                         logger.info("[$effectiveTargetLang] Successfully translated batch of $expectedInputSize strings.")
-                        return translatedResults
+                        return translatedResults.map { it.escapeForAndroidXml() }
                     } else {
                         logger.error(
                             "[$effectiveTargetLang] API Error: Translated texts array size (${finalExtractedValue.size}) " +
                                     "does NOT match expected input size ($expectedInputSize) for response key '$responseArrayKey'. " +
                                     "Response: $responseBody"
                         )
-                        return originalTexts
+                        return originalTexts.map { it.escapeForAndroidXml() }
                     }
                 } else {
                     logger.error(
                         "[$effectiveTargetLang] API Error: Expected a JSONArray at key '$responseArrayKey' in response, " +
                                 "but found ${finalExtractedValue?.javaClass?.simpleName}. Response: $responseBody"
                     )
-                    return originalTexts
+                    return originalTexts.map { it.escapeForAndroidXml() }
                 }
             } else {
                 val errorBodyStream = conn.errorStream ?: conn.inputStream
                 val errorBody = errorBodyStream?.bufferedReader(StandardCharsets.UTF_8)?.readText() ?: "No error body"
                 logger.error("[$effectiveTargetLang] API Error ($responseCode) for batch. URL: $finalUrlString, Payload: $finalPayload, Response: $errorBody")
-                return originalTexts
+                return originalTexts.map { it.escapeForAndroidXml() }
             }
         } catch (e: Exception) {
             logger.error("[$effectiveTargetLang] Exception during API call for batch: ${e.message}. URL: $finalUrlString, Payload: $finalPayload", e)
-            return originalTexts
+            return originalTexts.map { it.escapeForAndroidXml() }
         } finally {
             conn.disconnect()
         }

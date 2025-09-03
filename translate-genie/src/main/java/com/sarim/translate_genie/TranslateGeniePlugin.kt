@@ -5,19 +5,17 @@ import org.gradle.api.Project
 
 class TranslateGeniePlugin : Plugin<Project> {
     override fun apply(project: Project) {
-        val extension = project.extensions.create("translateGenie", TranslateGenieExtension::class.java)
+        val extension = project.extensions.create(
+            "translateGenie",
+            TranslateGenieExtension::class.java,
+            project.objects
+        )
 
         project.afterEvaluate {
             val isAndroidApp = project.plugins.hasPlugin("com.android.application")
             val isAndroidLib = project.plugins.hasPlugin("com.android.library")
 
             if (isAndroidApp || isAndroidLib) {
-                project.tasks.register(
-                    "generateProjectTranslations",
-                    GenerateTranslationsTask::class.java,
-                ) {
-                    this
-                }
                 project.tasks.register("generateProjectTranslations", GenerateTranslationsTask::class.java) {
                     this.description = "Generates translations for this Android project using configured API settings."
                     this.group = "Translation"
@@ -39,7 +37,10 @@ class TranslateGeniePlugin : Plugin<Project> {
                     this.taskSpecificLogger.set(project.logger)
                 }
                 project.logger.info("TranslateGeniePlugin: 'generateProjectTranslations' task registered for ${project.name}.")
-            } else { /* ... log not an Android project ... */ }
+            } else {
+                project.logger.info("TranslateGeniePlugin: Not an Android project (${project.name}), " +
+                        "'generateProjectTranslations' task not registered.")
+            }
         }
         project.logger.info("TranslateGeniePlugin applied. Configure via 'translateGenie' extension.")
     }
