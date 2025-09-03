@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.ktlintPlugin)
     alias(libs.plugins.detektPlugin)
     alias(libs.plugins.spotlessPlugin)
+    alias(libs.plugins.gradlePublishPluginLibrary)
 }
 
 detekt {
@@ -35,6 +36,9 @@ dependencies {
     implementation(gradleApi())
     implementation(libs.jsonSimpleLibrary)
 }
+
+group = "io.github.sarimmehdi"
+version = "1.0.0"
 
 gradlePlugin {
     website = "https://github.com/sarimmehdi/Translate-Genie"

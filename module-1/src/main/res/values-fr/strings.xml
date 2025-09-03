@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <resources>
-    <!-- Auto-generated for 'fr' by TranslateGenie on 2025-09-03 21:41:44 MESZ -->
+    <!-- Auto-generated for 'fr' by TranslateGenie on 2025-09-04 00:54:48 MESZ -->
     <string name="app_name" translatable="false">My Example App</string>
     <!-- Note: %% for literal % -->
     <string name="product_serial_number" translatable="false">SN_12345_ABC</string>

@@ -133,7 +133,7 @@ jobs:
 
       - name: Publish to Gradle Plugins Portal
         run: |
-          ./gradlew publishPlugins \
+          ./gradlew :translate-genie:publishPlugins \
             -Pgradle.publish.key=${{ secrets.GRADLE_PUBLISH_KEY }} \
             -Pgradle.publish.secret=${{ secrets.GRADLE_PUBLISH_SECRET }} \
             --no-configuration-cache
