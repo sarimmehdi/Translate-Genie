@@ -4,7 +4,7 @@ inputs:
   java-version:
     description: 'Java version to set up'
     required: false
-    default: '23'
+    default: '22'
   java-distribution:
     description: 'Java distribution to use'
     required: false
